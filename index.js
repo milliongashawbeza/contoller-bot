@@ -80,7 +80,7 @@ app.use((req, res, next) => {
 const PORT = 3008; 
 
 
-
+	// Scrape Aircraft information & UPDATE Air-craft Information 
 app.get('/scrape_aircraft_information',(req,res)=>{
 	try{
 		res.send("Scraping Aircrafts, check Output.json"); 
@@ -91,9 +91,9 @@ app.get('/scrape_aircraft_information',(req,res)=>{
 		console.log(err)
 	 }
 })
-
+// Scrape Aircraft URLS & UPDATE Air-craft Information 
 app.use('/scrape_aircrafts_urls',(req,res)=>{
-    //fetch url from urls.json then fetch and store data to output.json 
+    //fetch url from url_result_controller.json then scrape information and store data to controller_output.json 
      //Start the browser and create a browser instance 
 	 try{
 		res.send("Scraping Aircrafts, check Output.json"); 
@@ -103,7 +103,12 @@ app.use('/scrape_aircrafts_urls',(req,res)=>{
 	 }catch(err){
 		console.log(err)
 	 }
-})
+})  
+
+
+
+
+
 
 app.listen(PORT, function(err){
     if (err) console.log("Error in server setup")

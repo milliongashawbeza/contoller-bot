@@ -3,6 +3,7 @@ const fs = require('fs');
 //const json = require('./output.json') 
 const Excel = require('exceljs');
 const cheerio = require("cheerio");
+const { url } = require('inspector');
 
 const scraperObject = {
 	url: 'contoller.com',
@@ -41,11 +42,11 @@ const scraperObject = {
 			} else {
 				await request.continue();
 			}
-		});  
-		var no_page_to_scrape =3; 
+		});
+		var no_page_to_scrape = 3;
 		// store an array with a length of no-page to be scraped . 
-		var someArray =  Array(no_page_to_scrape).fill(0).map((e,i)=>i+1)
-	
+		var someArray = Array(no_page_to_scrape).fill(0).map((e, i) => i + 1)
+
 		for (let i = 0; someArray.length; i++) {
 			try {
 				await page.goto('https://www.controlleremea.co.uk/listings/search?Category=3&page=' + someArray[i], { 'timeout': 20000, 'waitUntil': 'domcontentloaded' })
@@ -73,7 +74,7 @@ const scraperObject = {
 				// const response=request.get(Url)
 				const $ = await cheerio.load(html);
 				var someArray = []// Array(no_page_to_scrape).fill(0).map((e,i)=>i+1)
-			
+
 				$('#listContainer').find('.list-listing-title-link').each(function (index, element) {
 					// var imageKey = "image"+index;
 					//gInforMap.set(imageKey,$(element).attr("data-src")); 
@@ -94,18 +95,19 @@ const scraperObject = {
 						if (err) reject(err)
 						founded_url = founded_url + 1;
 						console.log("Aircraft url saved (" + founded_url + ')')
-					})}
-				
-					// manipulating the DOM
-				} catch (e) {
-					console.error(e)
+					})
 				}
-			}
 
-			//loop through each page to find ad urls 
-			//pagination(element,myObject,0,no_page_to_scrape) 
-			console.log(url)
-		
+				// manipulating the DOM
+			} catch (e) {
+				console.error(e)
+			}
+		}
+
+		//loop through each page to find ad urls 
+		//pagination(element,myObject,0,no_page_to_scrape) 
+		console.log(url)
+
 	},
 	async fetchCategories(browser, url) {
 		let page = await browser.newPage();
@@ -291,19 +293,45 @@ const scraperObject = {
 					//generalInfo.push($(element).text());
 				});
 				//save it to file 
-				var data = JSON.stringify(mapToObj(gInforMap))
-				console.log(data)
-				var parsed = JSON.parse(data)
-				//myObject.push(parsed)  
-				//var newData = JSON.stringify(myObject);
-				myObject.push(parsed)
-				//console.log(myObject); 
-				var newData = JSON.stringify(myObject);
-				//console.log(newData);	
-				fs.writeFile('controller_output.json', newData, (err) => {
-					if (err) reject(err)
-					console.log("Aircraft saved")
-				})
+				if (myObject.length == 0) {
+					var data = JSON.stringify(mapToObj(gInforMap))
+					console.log(data)
+					var parsed = JSON.parse(data)
+					//myObject.push(parsed)  
+					//var newData = JSON.stringify(myObject);
+					myObject.push(parsed)
+					//console.log(myObject); 
+					var newData = JSON.stringify(myObject);
+					//console.log(newData);	
+					fs.writeFile('controller_output.json', newData, (err) => {
+						if (err) reject(err)
+						console.log("Aircraft saved")
+					})
+				}
+				for (let t = 0; t < myObject.length; t++) {
+					// Check if url alreay Loaded 
+					if (myObject[t].url == ad_url) {
+						console.log('Already Saved');
+						break;
+					}
+					if (t == myObject.length - 1) {
+						var data = JSON.stringify(mapToObj(gInforMap))
+						console.log(data)
+						var parsed = JSON.parse(data)
+						//myObject.push(parsed)  
+						//var newData = JSON.stringify(myObject);
+						myObject.push(parsed)
+						//console.log(myObject); 
+						var newData = JSON.stringify(myObject);
+						//console.log(newData);	
+						fs.writeFile('controller_output.json', newData, (err) => {
+							if (err) reject(err)
+							console.log("Aircraft saved")
+						})
+					}
+
+				}
+
 
 
 			}

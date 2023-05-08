@@ -2,7 +2,7 @@ const fs = require('fs');
 const cheerio = require("cheerio");
 var randomUseragent = require('random-useragent');
 const urlExist = require('url-exist');
-
+var founded_url = 0;
 const USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.75 Safari/537.36';
 const useProxy = require('puppeteer-page-proxy');
 // That's it, the rest is puppeteer usage as normal 😊
@@ -10,6 +10,80 @@ var PROXY_USERNAME = 'scraperapi';
 var PROXY_PASSWORD = 'cd5497eba7916ba846ecfa745772f477'; // <-- enter your API_Key here
 var PROXY_SERVER = 'proxy-server.scraperapi.com';
 var PROXY_SERVER_PORT = '8001';
+async function scrpeP(url,page,myObject){
+    try {
+          
+        // console.log(url)
+        await page.goto(url, { 'timeout': 20000, 'waitUntil': 'domcontentloaded' });
+        //await page.waitForTimeout(10000);  
+        // await page.solveRecaptchas()s
+        const html = await page.content();
+        const $ = await cheerio.load(html);
+        var someArray = []// Array(no_page_to_scrape).fill(0).map((e,i)=>i+1)
+
+
+        $('#listContainer').find('.list-listing-title-link').each(function (index, element) {
+
+            someArray.push("https://www.controlleremea.co.uk" + $(element).attr("href"))
+           // aircraft_in_page.push($(element).attr("href"))
+        });
+        if(myObject.length==0){
+            var d = { url }
+            var data = JSON.stringify(d);
+            var parsed = JSON.parse(data);
+            myObject.push(parsed);
+            var newData = JSON.stringify(myObject);
+
+            fs.writeFile('url_result_controller.json', newData, (err) => {
+                if (err) reject(err)
+                founded_url = founded_url + 1;
+                console.log("Aircraft url saved (" + founded_url + ')')
+        
+            })
+        }
+        // 
+        for (let index = 0; index < someArray.length; index++) {
+            const url = someArray[index];
+            for(let p=0;p<myObject.length;p++){
+                if(url==myObject[p].url){
+                    break;
+                }else if(p==myObject.length-1){
+                    var d = { url }
+                    var data = JSON.stringify(d);
+                    var parsed = JSON.parse(data);
+                    myObject.push(parsed);
+                    var newData = JSON.stringify(myObject);
+
+                    fs.writeFile('url_result_controller.json', newData, (err) => {
+                        if (err) reject(err)
+                        founded_url = founded_url + 1;
+                        console.log("Aircraft url saved (" + founded_url + ')')
+                        console.log(index)
+                    })
+                }
+
+            }
+            //  console.log(url)
+        } 
+        if(someArray.length==0){
+          return false;
+        }else{
+            return true;
+        }
+
+    
+
+} catch (e) {
+    console.error(e)
+}  
+}
+async function scrapePage(category,page,myObject,someArray2){
+    
+    for (let v = 0; v < someArray2.length; v++) {
+        const pa = category+someArray2[v] 
+      await  scrpeP(pa,page,myObject)
+    }
+}
 const scraperObject = {
     url: 'https://bina.az/items/3408770',
     async scraper(browser) {
@@ -316,163 +390,23 @@ const scraperObject = {
             'https://www.controlleremea.co.uk/listings/search?Category=7&page=',
 
         ]
-          
-        // var categories = ["https://www.controlleremea.co.uk/listings/search?Category=3&page="]
-      
-        for (let s = 0; categories.length; s++) {
 
-               
-            var domain = categories[s] 
-            pageSelector(categories[s],function(){
-                console.log(sub)
-            })
-          
-        }
+        var no_page_to_scrape = 25;
+        // store an array with a length of no-page to be scraped . 
+        var someArray2 = Array(no_page_to_scrape).fill(0).map((e, i) => i + 1) 
+        
+        // var categories = ["https://www.controlleremea.co.uk/listings/search?Category=3&page="]
+            for(let y=0;y<categories.length;y++){ 
+                const category = categories[y];
+               await scrapePage(category,page,myObject,someArray2);
+              
+            }
+    
          
         }  
 
-        async function pageSelector(domain){ 
-            var d = domain;
-            console.log(d);
-            var no_page_to_scrape = 100;
-            // store an array with a length of no-page to be scraped . 
-            var someArray2 = Array(no_page_to_scrape).fill(0).map((e, i) => i + 1)
-            for (var p = 0; p < someArray2.length; p++) {
-                var pa = d+someArray2[p].toString()
-                try {
-                  
-                    // console.log(url)
-                    await page.goto(pa, { 'timeout': 20000, 'waitUntil': 'domcontentloaded' });
-                    //await page.waitForTimeout(10000);  
-                    // await page.solveRecaptchas()s
-                    const html = await page.content();
-                    const $ = await cheerio.load(html);
-                    var someArray = []// Array(no_page_to_scrape).fill(0).map((e,i)=>i+1)
+        
 
-
-                    $('#listContainer').find('.list-listing-title-link').each(function (index, element) {
-
-                        someArray.push("https://www.controlleremea.co.uk" + $(element).attr("href"))
-                        aircraft_in_page.push($(element).attr("href"))
-                    });
-                    if(myObject.length==0){
-                        var d = { url }
-                        var data = JSON.stringify(d);
-                        var parsed = JSON.parse(data);
-                        myObject.push(parsed);
-                        var newData = JSON.stringify(myObject);
-
-                        fs.writeFile('url_result_controller.json', newData, (err) => {
-                            if (err) reject(err)
-                            founded_url = founded_url + 1;
-                            console.log("Aircraft url saved (" + founded_url + ')')
-                            console.log(p)
-                        })
-                    }
-                    // 
-                    for (let index = 0; index < someArray.length; index++) {
-                        const url = someArray[index];
-                        for(var p=0;p<myObject.length;p++){
-                            if(url==myObject[p].url){
-                                break;
-                            }else if(p==myObject.length-1){
-                                var d = { url }
-                                var data = JSON.stringify(d);
-                                var parsed = JSON.parse(data);
-                                myObject.push(parsed);
-                                var newData = JSON.stringify(myObject);
-
-                                fs.writeFile('url_result_controller.json', newData, (err) => {
-                                    if (err) reject(err)
-                                    founded_url = founded_url + 1;
-                                    console.log("Aircraft url saved (" + founded_url + ')')
-                                    console.log(index)
-                                })
-                            }
-
-                        }
-                      
-
-                        //  console.log(url)
-                    } 
-                    if(someArray.length==0){
-                      break
-                    }
-            
-                    return;
-
-            } catch (e) {
-                console.error(e)
-            }   
-            }
-        } 
-        async function pageScraper(p){
-            try {
-                    var p = p;
-                    // console.log(url)
-                    await page.goto(p, { 'timeout': 20000, 'waitUntil': 'domcontentloaded' });
-                    //await page.waitForTimeout(10000);  
-                    // await page.solveRecaptchas()
-                    const html = await page.content();
-                    const $ = await cheerio.load(html);
-                    var someArray = []// Array(no_page_to_scrape).fill(0).map((e,i)=>i+1)
-
-
-                    $('#listContainer').find('.list-listing-title-link').each(function (index, element) {
-
-                        someArray.push("https://www.controlleremea.co.uk" + $(element).attr("href"))
-                        aircraft_in_page.push($(element).attr("href"))
-                    });
-                    if(myObject.length==0){
-                        var d = { url }
-                        var data = JSON.stringify(d);
-                        var parsed = JSON.parse(data);
-                        myObject.push(parsed);
-                        var newData = JSON.stringify(myObject);
-
-                        fs.writeFile('url_result_controller.json', newData, (err) => {
-                            if (err) reject(err)
-                            founded_url = founded_url + 1;
-                            console.log("Aircraft url saved (" + founded_url + ')')
-                            console.log(p)
-                        })
-                    }
-                    // 
-                    for (let index = 0; index < someArray.length; index++) {
-                        const url = someArray[index];
-                        for(var p=0;p<myObject.length;p++){
-                            if(url==myObject[p].url){
-                                break;
-                            }else if(p==myObject.length-1){
-                                var d = { url }
-                                var data = JSON.stringify(d);
-                                var parsed = JSON.parse(data);
-                                myObject.push(parsed);
-                                var newData = JSON.stringify(myObject);
-
-                                fs.writeFile('url_result_controller.json', newData, (err) => {
-                                    if (err) reject(err)
-                                    founded_url = founded_url + 1;
-                                    console.log("Aircraft url saved (" + founded_url + ')')
-                                    console.log(index)
-                                })
-                            }
-
-                        }
-                      
-
-                        //  console.log(url)
-                    } 
-                    if(someArray.length==0){
-                        return false;
-                    }
-            
-                    return true;
-
-            } catch (e) {
-                console.error(e)
-            }
-        }
 
         console.log(`All done, check the screenshots. ✨`)
 
