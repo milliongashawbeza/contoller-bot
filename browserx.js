@@ -12,7 +12,7 @@ puppeteer.use(StealthPlugin())
 //   RecaptchaPlugin({
 //     provider: {
 //       id: '2captcha',
-//       token: 'b3f99c80e6dde3ffa84d9d8bdb1fc31b'
+//       token: 'b'
 
 
 //     },
